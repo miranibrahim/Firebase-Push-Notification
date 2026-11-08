@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Get FCM Token</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 640px;
+        margin: 60px auto;
+        padding: 0 20px;
+      }
+      button {
+        padding: 10px 18px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      textarea {
+        width: 100%;
+        height: 120px;
+        margin-top: 16px;
+        font-family: monospace;
+      }
+      #status {
+        margin-top: 12px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Get your FCM device token</h2>
+    <button id="btn">Get Token</button>
+    <p id="status"></p>
+    <textarea
+      id="token"
+      readonly
+      placeholder="Your token will appear here"
+    ></textarea>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getMessaging,
+        getToken,
+        onMessage,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+
+      const status = document.getElementById("status");
+      const tokenBox = document.getElementById("token");
+      const button = document.getElementById("btn");
+
+      try {
+        const response = await fetch("/api/firebase-config");
+        const config = await response.json();
+        if (!response.ok) {
+          throw new Error(config.error || "Unable to load Firebase configuration.");
+        }
+
+        const app = initializeApp(config.firebaseConfig);
+        const messaging = getMessaging(app);
+
+        button.addEventListener("click", async () => {
+          try {
+            const permission = await Notification.requestPermission();
+            if (permission !== "granted") {
+              status.textContent = "Notification permission denied.";
+              return;
+            }
+
+            const registration = await navigator.serviceWorker.register(
+              "firebase-messaging-sw.js",
+            );
+            const token = await getToken(messaging, {
+              vapidKey: config.vapidKey,
+              serviceWorkerRegistration: registration,
+            });
+
+            tokenBox.value = token;
+            status.textContent =
+              "Token generated. Copy it into your curl request.";
+            console.log("FCM Token:", token);
+          } catch (err) {
+            status.textContent =
+              "Error: " + (err instanceof Error ? err.message : String(err));
+            console.error(err);
+          }
+        });
+
+        onMessage(messaging, (payload) => {
+          alert(`${payload.notification.title}\n${payload.notification.body}`);
+        });
+      } catch (err) {
+        button.disabled = true;
+        status.textContent =
+          "Error: " + (err instanceof Error ? err.message : String(err));
+        console.error(err);
+      }
+    </script>
+  </body>
+</html>
