@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { readFileSync } from "node:fs";
 import { cert, initializeApp } from "firebase-admin/app";
 
 const serviceAccountPath = process.env["SERVICE_ACCOUNT_PATH"];
@@ -10,5 +11,5 @@ if (!serviceAccountPath) {
 }
 
 initializeApp({
-  credential: cert(serviceAccountPath),
+  credential: cert(JSON.parse(readFileSync(serviceAccountPath, "utf8"))),
 });

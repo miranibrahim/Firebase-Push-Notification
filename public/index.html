@@ -37,6 +37,11 @@
       readonly
       placeholder="Your token will appear here"
     ></textarea>
+    <div id="topic-controls" hidden>
+      <input id="topic" type="text" placeholder="Topic name" />
+      <button id="subscribe" type="button">Subscribe</button>
+      <button id="unsubscribe" type="button">Unsubscribe</button>
+    </div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -49,6 +54,40 @@
       const status = document.getElementById("status");
       const tokenBox = document.getElementById("token");
       const button = document.getElementById("btn");
+      const topicInput = document.getElementById("topic");
+      const topicControls = document.getElementById("topic-controls");
+
+      async function updateTopicSubscription(action) {
+        const topic = topicInput.value;
+        if (!tokenBox.value || !topic.trim()) {
+          status.textContent = "Generate a token and enter a topic name.";
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/notifications/${action}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: tokenBox.value, topic }),
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || "Topic request failed.");
+          }
+          status.textContent = `Topic ${action} successful.`;
+        } catch (err) {
+          status.textContent =
+            "Error: " + (err instanceof Error ? err.message : String(err));
+          console.error(err);
+        }
+      }
+
+      document
+        .getElementById("subscribe")
+        .addEventListener("click", () => updateTopicSubscription("subscribe"));
+      document
+        .getElementById("unsubscribe")
+        .addEventListener("click", () => updateTopicSubscription("unsubscribe"));
 
       try {
         const response = await fetch("/api/firebase-config");
@@ -85,6 +124,7 @@
             });
 
             tokenBox.value = token;
+            topicControls.hidden = false;
             status.textContent =
               "Token generated. Copy it into your curl request.";
             console.info("[FCM] Token generated:", token);
