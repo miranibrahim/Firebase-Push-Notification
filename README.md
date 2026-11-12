@@ -4,32 +4,43 @@
 
 Requires Node.js and a Firebase project with Cloud Messaging enabled.
 
-1. Install dependencies:
+1. **Install dependencies:**
 
    ```bash
    npm install
    ```
 
-2. Generate a service account key (Project Settings > Service Accounts > Generate new private key). Save it as serviceAccountKey.json:
+2. **Generate a service account key:**
 
-  ```bash
-  {
-    "type": "service_account",
-    "project_id": "your_project_id",
-    "private_key_id": "your_private_key_id",
-    "private_key": "your_private_key",
-    "client_email": "your_client_email",
-    "client_id": "your_client_id",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "service_account_url",
-    "universe_domain": "googleapis.com"
-  }
-  ```
+   Go to **Project Settings > Service Accounts > Generate New Private Key** and save the downloaded file as `serviceAccountKey.json`.
 
-3. Copy `.env.example` to `.env` and fill in the Firebase web config and VAPID key from Firebase Console. Set `SERVICE_ACCOUNT_PATH` to your Firebase Admin service-account JSON file; keep that file private.
-4. Grant the service account the **Firebase Cloud Messaging Service Editor** role (`roles/cloudmessaging.editor`) in Google Cloud IAM to manage topics and send messages.
+   The JSON file should have the following structure:
+
+   ```json
+   {
+     "type": "service_account",
+     "project_id": "your_project_id",
+     "private_key_id": "your_private_key_id",
+     "private_key": "your_private_key",
+     "client_email": "your_client_email",
+     "client_id": "your_client_id",
+     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+     "token_uri": "https://oauth2.googleapis.com/token",
+     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+     "client_x509_cert_url": "service_account_url",
+     "universe_domain": "googleapis.com"
+   }
+   ```
+
+3. **Configure environment variables:**
+
+   Copy `.env.example` to `.env` and fill in the Firebase Web configuration and VAPID key from the Firebase Console.
+
+   Set `SERVICE_ACCOUNT_PATH` to the path of your Firebase Admin service-account JSON file. Keep this file private and never commit it to version control.
+
+4. **Grant IAM permissions:**
+
+   Grant the service account the **Firebase Cloud Messaging Service Agent** role (`roles/firebasecloudmessaging.serviceAgent`) in Google Cloud IAM if required for the Firebase setup. For sending messages and managing topics, use the appropriate FCM permissions and role.
 
 ## Run
 
